@@ -2,9 +2,7 @@ import pandas as pd
 import os
 import cv2
 import numpy as np
-import torch
-from torchvision.io import read_image
-from torchvision.ops import masks_to_boxes
+import json
 
 
 def convert_masks(image_list):
@@ -19,7 +17,7 @@ def convert_masks(image_list):
     for masked_image in image_list:
 
         mask = cv2.imread(masked_image, 0)
-        analysis = cv2.connectedComponentsWithStats(mask, connectivity=4)
+        analysis = cv2.connectedComponentsWithStats(mask, connectivity=8)
         boxes = analysis[2][1:]
         box_list = []
 
@@ -122,9 +120,19 @@ def get_bboxes_from_datasets(datasets):
         image_names = os.listdir(os.path.join(os.curdir, 'MaskedImages', dataset))
         masked_images = [os.path.join(os.curdir, 'MaskedImages', dataset, image_name) for image_name in image_names]
         matching_images = get_original_images(image_names, dataset)
-        bbox_labels = convert_masks(masked_images)
 
-        save_gt_images(matching_images, bbox_labels)
+        image_pairs = list(zip([os.path.normpath(image).split(os.path.sep)[-1] for image in matching_images], masked_images))
+
+        out_file = open("image_pairs.json", "w")
+
+        json.dump(image_pairs, out_file, indent=6)
+
+        out_file.close()
+
+
+        # bbox_labels = convert_masks(masked_images)
+
+        # save_gt_images(matching_images, bbox_labels)
 
 
 
