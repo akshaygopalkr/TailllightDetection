@@ -40,19 +40,20 @@ def merge_boxes(box_list, masked_image):
         box1_xmin, box1_ymin, box1_xmax, box1_ymax = box_list[i]
         box2_xmin, box2_ymin, box2_xmax, box2_ymax = box_list[j]
 
+        b1_area = (box1_xmax - box1_xmin) * (box1_ymax - box1_ymin)
+        b2_area = (box2_xmax - box2_xmin) * (box2_ymax - box2_ymin)
+        box_distance = calc_sim(box_list[i][:4], box_list[j][:4])
+
+
         # If the two boxes are close together than merge them
-        if calc_sim(box_list[i][:4], box_list[j][:4]) < 15:
+        if box_distance < 15 and (b1_area + b2_area)/2 > box_distance:
+            
+            print(masked_image, b1_area, b2_area, calc_sim(box_list[i][:4], box_list[j][:4]))
 
             new_box = [min(box1_xmin, box2_xmin),
             min(box1_ymin, box2_ymin),
             max(box1_xmax, box2_xmax),
             max(box1_ymax, box2_ymax)]
-
-            print(masked_image)
-            b1_area = (box1_xmax-box1_xmin)*(box1_ymax-box1_ymin)
-            b2_area = (box2_xmax-box2_xmin)*(box2_ymax-box2_ymin)
-            avg_area = (1/2)*(b1_area+b2_area)
-            print(calc_sim(box_list[i][:4], box_list[j][:4])/avg_area)
 
             # Replace the old boxes with the new one
             box_list_copy[i] = new_box
@@ -76,6 +77,7 @@ def convert_masks(image_list):
     for masked_image in image_list:
 
         mask = cv2.imread(masked_image, 0)
+        mask[mask != 0] = 1
         analysis = cv2.connectedComponentsWithStats(mask, connectivity=8)
         boxes = analysis[2][1:]
         box_list = []
