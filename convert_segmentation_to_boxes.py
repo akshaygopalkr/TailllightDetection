@@ -25,7 +25,7 @@ def calc_sim(box1, box2):
     return dist
 
 
-def merge_boxes(box_list):
+def merge_boxes(box_list, masked_image):
     """
     Merges boxes together while there are boxes that are close enough to each
     other to be merged
@@ -47,6 +47,12 @@ def merge_boxes(box_list):
             min(box1_ymin, box2_ymin),
             max(box1_xmax, box2_xmax),
             max(box1_ymax, box2_ymax)]
+
+            print(masked_image)
+            b1_area = (box1_xmax-box1_xmin)*(box1_ymax-box1_ymin)
+            b2_area = (box2_xmax-box2_xmin)*(box2_ymax-box2_ymin)
+            avg_area = (1/2)*(b1_area+b2_area)
+            print(calc_sim(box_list[i][:4], box_list[j][:4])/avg_area)
 
             # Replace the old boxes with the new one
             box_list_copy[i] = new_box
@@ -81,7 +87,7 @@ def convert_masks(image_list):
         # Merge all the boxes fully
         need_to_merge = True
         while need_to_merge:
-            need_to_merge, box_list = merge_boxes(box_list)
+            need_to_merge, box_list = merge_boxes(box_list, masked_image)
 
         bboxes.append(box_list)
 
